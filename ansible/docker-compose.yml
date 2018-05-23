@@ -12,39 +12,28 @@ services:
     hostname: master01
     command: ["/usr/sbin/sshd","-D"]
     volumes:
-      - ansible_vol:/var/ans
-  host:
+      - ansible_vol:/usr/share/ansible
+  karaf01:
     links:
       - base
       - master
     build: ./host/
     image: ansible_host
-    container_name: host01
-    hostname: host01
+    container_name: karaf01
+    hostname: karaf01
     command: ["/var/run.sh"]
     volumes:
-     - ansible_vol:/var/ans
-  host02:
-    links:
-      - base
-      - master
-      - host
-    image: ansible_host
-    container_name: host02
-    hostname: host02
-    command: ["/var/run.sh"]
-    volumes:
-     - ansible_vol:/var/ans
-  host03:
-    links:
-      - base
-      - master
-      - host
-    image: ansible_host
-    container_name: host03
-    hostname: host03
-    command: ["/var/run.sh"]
-    volumes:
-     - ansible_vol:/var/ans
+     - ansible_vol:/usr/share/ansible
+  #karaf02:
+  #  links:
+  #    - base
+  #    - master
+  #    - karaf01
+  #  image: ansible_host
+  #  container_name: karaf02
+  #  hostname: karaf02
+  #  command: ["/var/run.sh"]
+  #  volumes:
+  #   - ansible_vol:/usr/share/ansible 
 volumes:
   ansible_vol:

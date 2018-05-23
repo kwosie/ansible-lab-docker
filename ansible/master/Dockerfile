@@ -3,17 +3,23 @@
 # use builded ansible_base (defined in ../base/Dockerfile) as a starting point
 FROM ansible_base:latest
 
-# install ansible package
-RUN apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests -y \
-    ansible
+# install git package
+RUN EPEL_TESTING_PKGS="git ansible" \
+	&& yum install -y --setopt=tsflags=nodocs --enablerepo=epel-testing $EPEL_TESTING_PKGS \
+	&& rpm -V $EPEL_TESTING_PKGS \
+	&& yum clean all
+
+ENV WORK_DIR=/usr/share/ansible
 
 # copy content of ansible directory from local disk to file system inside Docker image
-COPY ansible /var/ans/
+COPY ansible ${WORK_DIR}
 
 # change working directory
-WORKDIR /var/ans
+WORKDIR ${WORK_DIR}
 
-# generate RSA key pair to allow master to communicate with managed nodes
-# default private key passphrase is '12345' (not a good idea for production environment ;)
-RUN ssh-keygen -t rsa -N 12345 -C "master key" -f master_key
+# generate RSA key pair to allow master to communicate with managed nodes without passphrase
+RUN ssh-keygen -t rsa -q -N "" -C "master key" -f master_key 
+
+RUN cp master_key /etc/ssh/ssh_host_rsa_key \
+	&& cp master_key /root/.ssh/id_rsa \
+	&& cp master_key.pub /root/.ssh/authorized_keys
