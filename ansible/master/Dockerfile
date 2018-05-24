@@ -18,8 +18,13 @@ COPY ansible ${WORK_DIR}
 WORKDIR ${WORK_DIR}
 
 # generate RSA key pair to allow master to communicate with managed nodes without passphrase
-RUN ssh-keygen -t rsa -q -N "" -C "master key" -f master_key 
+#RUN ssh-keygen -t rsa -q -N "" -C "master key" -f master_key 
 
-RUN cp master_key /etc/ssh/ssh_host_rsa_key \
-	&& cp master_key /root/.ssh/id_rsa \
-	&& cp master_key.pub /root/.ssh/authorized_keys
+#RUN cp master_key /etc/ssh/ssh_host_rsa_key \
+#	&& cp master_key /root/.ssh/id_rsa \
+#	&& cp master_key.pub /root/.ssh/authorized_keys
+
+COPY run.sh /var/
+
+# adjust file permissions to make run.sh executable
+RUN chmod 755 /var/run.sh

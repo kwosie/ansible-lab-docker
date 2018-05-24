@@ -1,0 +1,45 @@
+#https://github.com/geerlingguy/docker-centos7-ansible/blob/master/Dockerfile
+
+FROM centos:7
+LABEL maintainer="Jeff Geerling"
+ENV container=docker
+
+# Install systemd -- See https://hub.docker.com/_/centos/
+RUN yum -y update; yum clean all; \
+(cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+rm -f /lib/systemd/system/multi-user.target.wants/*;\
+rm -f /etc/systemd/system/*.wants/*;\
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*;\
+rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+# Install Ansible and other requirements.
+#      git \
+#	  ansible \
+#      sudo \
+#      which \
+RUN INSTALL_PKGS="python-lxml python-dns pyOpenSSL python2-cryptography openssl java-1.8.0-openjdk-headless httpd-tools openssh-clients openssh-server iproute patch git ansible sudo which unzip" \
+ && yum makecache fast \
+ && yum -y install deltarpm epel-release initscripts \
+ && yum -y update \
+ && yum -y install --setopt=tsflags=nodocs $INSTALL_PKGS \
+ && yum clean all
+
+#setup sshd folder
+RUN mkdir /var/run/sshd
+RUN mkdir -p /root/.ssh
+
+
+# Disable requiretty.
+RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/'  /etc/sudoers
+
+# Install Ansible inventory file.
+RUN echo -e '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts
+
+COPY sys /sys
+#RUN tar -xzvf /cgroup.tgz
+#VOLUME ["/sys/fs/cgroup"]
+CMD ["/usr/sbin/init"]
+CMD ["/usr/lib/systemd/systemd"]
